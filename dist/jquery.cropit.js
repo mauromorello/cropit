@@ -116,6 +116,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return callOnFirst(this, 'getCroppedImageData', options);
 	  },
 
+	  'rotate': function _rotate(degrees) {
+	    return callOnFirst(this, 'rotate', degrees);
+	  },
+	  
 	  imageState: function imageState() {
 	    return callOnFirst(this, 'getImageState');
 	  },
@@ -685,7 +689,44 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	      return canvas.toDataURL(exportOptions.type, exportOptions.quality);
 	    }
-	  }, {
+	  },{
+	        key: 'rotate',
+	        value: function rotate(degrees) {
+	            var img = new Image();
+	            img.src = this.imageSrc;
+	            var originalWidth = this.imageSize.w;
+	            var originalHeight = this.imageSize.h;
+	
+
+	            var rads=degrees*Math.PI/180;
+	            var newWidth, newHeight;
+	            var c = Math.cos(rads);
+	            var s = Math.sin(rads);
+	            if (s < 0) { s = -s; }
+	            if (c < 0) { c = -c; }
+	            newWidth = originalWidth * s + originalWidth * c;
+	            newHeight = originalHeight * c + originalHeight * s;
+	            var canvas = document.createElement('canvas');
+	            var ctx = canvas.getContext("2d");
+	            canvas.width = parseInt(newWidth, 10);
+	            canvas.height = parseInt(newHeight, 10);
+	            var cx=canvas.width/2;
+	            var cy=canvas.height/2;
+	            ctx.clearRect(0, 0, canvas.width, canvas.height);
+	            ctx.translate(cx, cy);
+	            ctx.rotate(rads);
+	            ctx.drawImage(img, -originalWidth / 2, -originalHeight / 2);
+	
+	            this.imageSrc = canvas.toDataURL();
+	            this.imageSize.w = canvas.width;
+	            this.imageSize.h = canvas.height;
+	
+	            this.loadImage(this.imageSrc);
+	            if (this.imageLoaded) {
+	                this.setupZoomer();
+	            }
+        }
+      }, {
 	    key: 'getImageState',
 	    value: function getImageState() {
 	      return {
